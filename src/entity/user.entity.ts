@@ -1,11 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm";
 import { Book } from "./book.entity";
 import { Show } from "./show.entity";
-
-enum UserRole {
-    ADMIN = "admin",
-    USER = "user"
-}
+import { UserRole } from "src/user/enums/role.enum";
 
 @Entity({
     name: "users", // 데이터베이스 테이블의 이름
@@ -23,6 +19,9 @@ export class User {
 
     @Column({ nullable: true })
     currentRefreshToken?: string;
+
+    @Column()
+    name: string;
 
     @Column({ type: "enum", enum: UserRole, default: UserRole.USER })
     role: UserRole

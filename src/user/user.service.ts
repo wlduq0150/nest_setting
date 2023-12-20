@@ -1,26 +1,78 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "src/entity/user.entity";
+import { Repository } from "typeorm";
+import { ConfigService } from "@nestjs/config";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+        private readonly configService: ConfigService,
+    ) {}
 
-  findAll() {
-    return `This action returns all user`;
-  }
+    async create(createUserDto: CreateUserDto) {
+        const { email } = createUserDto;
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
+        const isUser = await this.findUserByEmail(email);
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+        if (isUser) {
+            throw new ConflictException("이미 존재하는 이메일입니다.");
+        }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+        const user = await this.userRepository.save(createUserDto);
+
+        return user.id;
+    }
+
+    async findAll() {
+        return await this.userRepository.find({
+          select: ["email", "name", "role", "createdAt", "updatedAt"],
+        });
+    }
+
+    async findUserById(id: number) {
+        return await this.userRepository.findOne({
+            where: { id },
+            select: ["email", "name", "role", "createdAt", "updatedAt"],
+        });
+    }
+
+    async findUserByEmail(email: string) {
+        return await this.userRepository.findOne({
+            where: { email },
+        });
+    }
+
+    async update(id: number, updateUserDto: UpdateUserDto) {
+      const isUser = await this.findUserById(id);
+
+      if (!isUser) {
+          throw new NotFoundException("존재하지 않는 사용자입니다.");
+      }
+
+      const result = await this.userRepository.update({
+        id
+      }, {
+        ...updateUserDto
+      });
+
+      return result;
+    }
+
+    async remove(id: number) {
+      const isUser = await this.findUserById(id);
+
+      if (!isUser) {
+          throw new NotFoundException("존재하지 않는 사용자입니다.");
+      }
+
+      const result = await this.userRepository.delete({ id });
+
+      return result;
+    }
 }

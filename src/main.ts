@@ -1,7 +1,11 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import {
+    DocumentBuilder,
+    SwaggerCustomOptions,
+    SwaggerModule,
+} from "@nestjs/swagger";
 import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
@@ -12,22 +16,38 @@ async function bootstrap() {
         credentials: true,
     });
 
-    app.useGlobalPipes(new ValidationPipe({
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-        whitelist: true,
-        // forbidNonWhitelisted: true,
-    }));
+    app.useGlobalPipes(
+        new ValidationPipe({
+            transform: true,
+            transformOptions: { enableImplicitConversion: true },
+            whitelist: true,
+            // forbidNonWhitelisted: true,
+        }),
+    );
 
     // Swagger
+    const swaggerCustomOptions: SwaggerCustomOptions = {
+        swaggerOptions: {
+            persistAuthorization: true,
+        },
+    };
+
     const config = new DocumentBuilder()
         .setTitle("Webtoon Recommend")
         .setDescription("Webtoon Recommend API description")
         .setVersion("1.0")
         .addTag("webtoon")
+        .addBearerAuth(
+            { type: 'http', scheme: 'bearer', bearerFormat: 'Token' },
+            'accessToken',
+        )
+        .addBearerAuth(
+            { type: 'http', scheme: 'bearer', bearerFormat: 'Token' },
+            'refreshToken',
+        )
         .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("api", app, document);
+    SwaggerModule.setup("api", app, document, swaggerCustomOptions);
 
     // 환경 변수 설정
     const configService = app.get(ConfigService);
