@@ -1,4 +1,14 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    Relation,
+    UpdateDateColumn,
+} from "typeorm";
 import { Seat } from "./seat.entity";
 import { Book } from "./book.entity";
 import { User } from "./user.entity";
@@ -7,7 +17,6 @@ import { User } from "./user.entity";
     name: "shows", // 데이터베이스 테이블의 이름
 })
 export class Show {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -35,16 +44,19 @@ export class Show {
     @Column()
     totalSeat: number;
 
+    @Column()
+    price: number;
+
     @CreateDateColumn()
     createdAt: Date;
 
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToMany(() => Seat, (seat) => (seat.show))
+    @OneToMany(() => Seat, (seat) => seat.show)
     seats: Relation<Seat>[];
 
-    @OneToMany(() => Book, (book) => (book.show), { cascade: true })
+    @OneToMany(() => Book, (book) => book.show, { cascade: true })
     books: Relation<Book>[];
 
     // @ManyToMany(() => User, (user) => (user.shows))

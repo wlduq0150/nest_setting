@@ -1,4 +1,13 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm";
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    ManyToMany,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    Relation,
+    UpdateDateColumn,
+} from "typeorm";
 import { Book } from "./book.entity";
 import { Show } from "./show.entity";
 import { UserRole } from "src/user/enums/role.enum";
@@ -7,7 +16,6 @@ import { UserRole } from "src/user/enums/role.enum";
     name: "users", // 데이터베이스 테이블의 이름
 })
 export class User {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -24,7 +32,10 @@ export class User {
     name: string;
 
     @Column({ type: "enum", enum: UserRole, default: UserRole.USER })
-    role: UserRole
+    role: UserRole;
+
+    @Column({ default: 1000000 })
+    money: number;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -32,7 +43,7 @@ export class User {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToMany(() => Book, (book) => (book.user))
+    @OneToMany(() => Book, (book) => book.user)
     books: Relation<Book>[];
 
     // @ManyToMany(() => Show, (show) => (show.users))
