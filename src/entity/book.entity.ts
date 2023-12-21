@@ -17,13 +17,13 @@ export class Book {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToOne(() => Seat, (seat) => (seat.book))
+    @OneToOne(() => Seat, (seat) => (seat.book), { onDelete: "CASCADE" })
     @JoinColumn()
     seat: Relation<Seat>;
 
-    @ManyToOne(() => Show, (show) => (show.books))
+    @ManyToOne(() => Show, (show) => (show.books), { onDelete: "CASCADE" })
     show: Relation<Show>;
 
-    @ManyToOne(() => User, (user) => (user.books))
+    @ManyToOne(() => User, (user) => (user.books), { onDelete: "CASCADE" })
     user: Relation<User>;
 }

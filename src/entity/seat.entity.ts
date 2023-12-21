@@ -14,9 +14,8 @@ export class Seat {
     seatNumber: number;
 
     @OneToOne(() => Book, (book) => (book.seat))
-    @JoinColumn()
     book: Relation<Book>;
 
-    @ManyToOne(() => Show, (show) => (show.seats))
+    @ManyToOne(() => Show, (show) => (show.seats), { nullable: false, onDelete: "CASCADE" })
     show: Relation<Show>;
 }

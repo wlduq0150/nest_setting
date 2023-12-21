@@ -35,6 +35,6 @@ export class User {
     @OneToMany(() => Book, (book) => (book.user))
     books: Relation<Book>[];
 
-    @ManyToMany(() => Show, (show) => (show.users))
-    shows: Relation<Show>[];
+    // @ManyToMany(() => Show, (show) => (show.users))
+    // shows: Relation<Show>[];
 }
