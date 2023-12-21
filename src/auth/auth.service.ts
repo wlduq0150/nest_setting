@@ -10,6 +10,7 @@ import { LoginUserDto } from "./dto/login-user.dto";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
+import { UserRole } from "src/user/enums/role.enum";
 
 @Injectable()
 export class AuthService {
@@ -61,7 +62,7 @@ export class AuthService {
             throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
         }
 
-        const accessToken = this.generateAccessToken(user.id, user.name);
+        const accessToken = this.generateAccessToken(user.id, user.name, user.role);
         const refreshToken = this.generateRefreshToken(user.id);
 
         await this.userService.update(user.id, {
@@ -79,7 +80,7 @@ export class AuthService {
     async refresh(id: number) {
         const user = await this.userService.findUserById(id);
 
-        const accessToken = this.generateAccessToken(id, user.name);
+        const accessToken = this.generateAccessToken(id, user.name, user.role);
 
         return accessToken;
     }
@@ -96,8 +97,8 @@ export class AuthService {
 
 
     /// access 토큰 발급 (private)
-    private generateAccessToken(id: number, name: string) {
-        const payload = { userId: id, userName: name };
+    private generateAccessToken(id: number, name: string, role: UserRole) {
+        const payload = { userId: id, userName: name, userRole: role};
 
         const accessToken = this.jwtService.sign(payload, {
             secret: this.configService.get<string>("JWT_ACCESS_TOKEN_SECRET"),

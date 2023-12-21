@@ -30,9 +30,9 @@ export class accessTokenStrategy extends PassportStrategy(
                 secret: this.configService.get<string>("JWT_ACCESS_TOKEN_SECRET"),
             });
 
-            req.user = payload;
+            const user = payload;
 
-            return req.user;
+            return user;
         } catch (e) {
             if (e.message === "jwt expired") {
                 throw new UnauthorizedException("accessToken expired");

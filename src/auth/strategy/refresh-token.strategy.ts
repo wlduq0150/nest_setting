@@ -17,12 +17,7 @@ export class refreshTokenStrategy extends PassportStrategy(
         private readonly authService: AuthService
     ) {
         super({
-            jwtFromRequest: ExtractJwt.fromExtractors([
-                (req) => {
-                    console.log(req);
-                    return req.headers.authorization.replace("Bearer ", "");
-                }
-            ]),
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             secretOrKey: configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
             ignoreExpiration: true,
             passReqToCallback: true,
@@ -37,12 +32,12 @@ export class refreshTokenStrategy extends PassportStrategy(
                 secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET"),
             });
 
-            req.user = {
+            const user = {
                 ...payload,
                 refreshToken: token
             };
 
-            return req.user;
+            return user;
         } catch (e) {
             if (e.message === "jwt expired") {
                 const userId: number = payload.userId;

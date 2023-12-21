@@ -7,9 +7,17 @@ import { accessTokenGuard } from "./guard/access-token.guard";
 import { accessTokenStrategy } from "./strategy/access-token.strategy";
 import { refreshTokenGuard } from "./guard/refresh-token.guard";
 import { refreshTokenStrategy } from "./strategy/refresh-token.strategy";
+import { UserRoleGuard } from "./guard/user-role.guard";
 
 @Module({
     imports: [UserModule, JwtModule],
+    exports: [
+        accessTokenGuard,
+        accessTokenStrategy,
+        refreshTokenGuard,
+        refreshTokenStrategy,
+        UserRoleGuard
+    ],
     controllers: [AuthController],
     providers: [
         AuthService,
@@ -17,6 +25,7 @@ import { refreshTokenStrategy } from "./strategy/refresh-token.strategy";
         accessTokenStrategy,
         refreshTokenGuard,
         refreshTokenStrategy,
+        UserRoleGuard
     ],
 })
 export class AuthModule {}

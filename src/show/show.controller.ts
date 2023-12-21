@@ -1,7 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { ShowService } from './show.service';
 import { CreateShowDto } from './dto/create-show.dto';
 import { UpdateShowDto } from './dto/update-show.dto';
+import { accessTokenGuard } from 'src/auth/guard/access-token.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { UserRoleGuard } from 'src/auth/guard/user-role.guard';
 
 @Controller('show')
 export class ShowController {
@@ -12,9 +16,13 @@ export class ShowController {
     return this.showService.create(createShowDto);
   }
 
+  @ApiBearerAuth('accessToken')
+  @Roles(["admin"])
+  @UseGuards(accessTokenGuard, UserRoleGuard)
   @Get()
   findAll() {
-    return this.showService.findAll();
+    // return this.showService.findAll();
+    return true;
   }
 
   @Get(':id')
