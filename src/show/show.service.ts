@@ -19,8 +19,6 @@ export class ShowService {
 
         const seats = await this.seatService.generateSeatsForShow(show);
 
-        // console.log(seats);
-
         return show;
     }
 
@@ -53,8 +51,20 @@ export class ShowService {
     }
 
     async findShowByName(name: string) {
-        const show = await this.showRepository.find({
+        const show = await this.showRepository.findOne({
             where: { name },
+        });
+
+        if (!show) {
+            throw new NotFoundException("존재하지 않는 공연입니다.");
+        }
+
+        return show;
+    }
+
+    async findShowById(id: number) {
+        const show = await this.showRepository.findOne({
+            where: { id },
         });
 
         if (!show) {

@@ -8,6 +8,7 @@ import { SeatModule } from "src/seat/seat.module";
 
 @Module({
     imports: [TypeOrmModule.forFeature([Show]), AuthModule, SeatModule],
+    exports: [ShowService],
     controllers: [ShowController],
     providers: [ShowService],
 })

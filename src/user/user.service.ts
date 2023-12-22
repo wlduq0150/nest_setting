@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -30,14 +34,22 @@ export class UserService {
 
     async findAll() {
         return await this.userRepository.find({
-          select: ["email", "name", "role", "createdAt", "updatedAt"],
+            select: ["email", "name", "role", "createdAt", "updatedAt"],
         });
     }
 
     async findUserById(id: number) {
         return await this.userRepository.findOne({
             where: { id },
-            select: ["email", "name", "role", "createdAt", "updatedAt"],
+            select: [
+                "id",
+                "email",
+                "name",
+                "role",
+                "money",
+                "createdAt",
+                "updatedAt",
+            ],
         });
     }
 
@@ -48,30 +60,33 @@ export class UserService {
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
-      const isUser = await this.findUserById(id);
+        const isUser = await this.findUserById(id);
 
-      if (!isUser) {
-          throw new NotFoundException("존재하지 않는 사용자입니다.");
-      }
+        if (!isUser) {
+            throw new NotFoundException("존재하지 않는 사용자입니다.");
+        }
 
-      const result = await this.userRepository.update({
-        id
-      }, {
-        ...updateUserDto
-      });
+        const result = await this.userRepository.update(
+            {
+                id,
+            },
+            {
+                ...updateUserDto,
+            },
+        );
 
-      return result;
+        return result;
     }
 
     async remove(id: number) {
-      const isUser = await this.findUserById(id);
+        const isUser = await this.findUserById(id);
 
-      if (!isUser) {
-          throw new NotFoundException("존재하지 않는 사용자입니다.");
-      }
+        if (!isUser) {
+            throw new NotFoundException("존재하지 않는 사용자입니다.");
+        }
 
-      const result = await this.userRepository.delete({ id });
+        const result = await this.userRepository.delete({ id });
 
-      return result;
+        return result;
     }
 }

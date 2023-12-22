@@ -16,7 +16,7 @@ export class SeatService {
     async generateSeatsForShow(show: Show) {
         const seatNumbers: CreateSeat[] = [];
 
-        for (let i=1; i<show.totalSeat+1; i++) {
+        for (let i = 1; i < show.totalSeat + 1; i++) {
             seatNumbers.push({ show, seatNumber: i });
         }
 
@@ -28,8 +28,8 @@ export class SeatService {
     private async create(show: Show, seatNumber: number) {
         const seat = await this.seatRepository.save({
             show,
-            seatNumber
-        })
+            seatNumber,
+        });
 
         return seat;
     }
@@ -40,19 +40,14 @@ export class SeatService {
         return seats;
     }
 
-    findAll() {
-        return `This action returns all seat`;
-    }
+    async findSeatByCondition(showId: number, seatNumber: number) {
+        const seat = await this.seatRepository
+            .createQueryBuilder("seat")
+            .leftJoinAndSelect("seat.show", "show")
+            .where("show.id = :showId", { showId })
+            .where("seat.seatNumber = :seatNumber", { seatNumber })
+            .getOne();
 
-    findOne(id: number) {
-        return `This action returns a #${id} seat`;
-    }
-
-    update(id: number, updateSeatDto: UpdateSeatDto) {
-        return `This action updates a #${id} seat`;
-    }
-
-    remove(id: number) {
-        return `This action removes a #${id} seat`;
+        return seat;
     }
 }
