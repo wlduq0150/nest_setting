@@ -11,11 +11,11 @@ export class CreateShowDto {
     description: string;
 
     @IsDate()
-    @ApiProperty({ description: "공연 날짜" })
-    date: Date;
+    @ApiProperty({ example: "2024-01-31", description: "공연 날짜" })
+    date: string;
 
     @IsString()
-    @ApiProperty({ description: "공연 시간" })
+    @ApiProperty({ example: "14:00", description: "공연 시간" })
     time: string;
 
     @IsString()
