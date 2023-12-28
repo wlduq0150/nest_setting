@@ -97,15 +97,13 @@ export class BookService {
             });
 
             // 좌석 확인
-            const seat = await queryRunner.manager.findOne(Seat, {
-                where: {
-                    seatNumber,
-                    show,
-                },
-                lock: {
-                    mode: "pessimistic_write",
-                },
-            });
+            const seat = await queryRunner.manager
+                .createQueryBuilder(Seat, "seat")
+                .setLock("pessimistic_write")
+                .leftJoinAndSelect("seat.show", "show")
+                .where("show.id = :showId", { showId })
+                .where("seat.seatNumber = :seatNumber", { seatNumber })
+                .getOne();
             if (!seat) {
                 throw new NotFoundException("존재하지 않는 좌석입니다.");
             }
@@ -119,12 +117,13 @@ export class BookService {
             await queryRunner.manager.save(user);
 
             // 예약이 있는지 확인
-            const isBook = await queryRunner.manager.findOne(Book, {
-                where: {
-                    seat,
-                    show,
-                },
-            });
+            const isBook = await queryRunner.manager
+                .createQueryBuilder(Book, "book")
+                .leftJoinAndSelect("book.show", "show")
+                .leftJoinAndSelect("book.seat", "seat")
+                .where("show.id = :showId", { showId })
+                .where("seat.id = :seatId", { seatId: seat.id })
+                .getOne();
             if (isBook) {
                 throw new ConflictException("이미 예약되어 있습니다.");
             }
@@ -165,18 +164,6 @@ export class BookService {
             .getMany();
 
         return books;
-    }
-
-    private async findBookByCondition(showId: number, seatId: number) {
-        const book = await this.bookRepository
-            .createQueryBuilder("book")
-            .leftJoinAndSelect("book.show", "show")
-            .leftJoinAndSelect("book.seat", "seat")
-            .where("show.id = :showId", { showId })
-            .where("seat.id = :seatId", { seatId })
-            .getOne();
-
-        return book;
     }
 
     async cancleBook(bookId: number, userId: number) {

@@ -1,34 +1,38 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Patch,
+    Param,
+    Delete,
+    UseGuards,
+} from "@nestjs/common";
+import { UserService } from "./user.service";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { accessTokenGuard } from "src/auth/guard/access-token.guard";
+import { Roles } from "src/auth/decorators/roles.decorator";
+import { UserRoleGuard } from "src/auth/guard/user-role.guard";
+import { UserId } from "src/auth/decorators/userId.decorator";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
-@Controller('user')
+@Controller("user")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+    constructor(private readonly userService: UserService) {}
 
-  @Post("")
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
-  }
+    @ApiBearerAuth("accessToken")
+    @Roles(["admin"])
+    @UseGuards(accessTokenGuard, UserRoleGuard)
+    @Get("")
+    findAll() {
+        return this.userService.findAll();
+    }
 
-  @Get("")
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get(':id')
-  findUserById(@Param('id') id: string) {
-    return this.userService.findUserById(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
-  }
+    @ApiBearerAuth("accessToken")
+    @UseGuards(accessTokenGuard)
+    @Get("me")
+    findUserById(@UserId() id: string) {
+        return this.userService.findUserById(+id);
+    }
 }
