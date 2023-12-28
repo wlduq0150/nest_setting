@@ -15,6 +15,9 @@ import { Book } from "src/entity/book.entity";
 import { DataSource, Repository } from "typeorm";
 import { compareDateTime } from "./function/timeCompare.function";
 import { getCurrentTime } from "./function/currentTime.function";
+import { User } from "src/entity/user.entity";
+import { Show } from "src/entity/show.entity";
+import { Seat } from "src/entity/seat.entity";
 
 @Injectable()
 export class BookService {
@@ -74,55 +77,67 @@ export class BookService {
     async bookWithSelect(userId: number, createBookDto: CreateBookWithSelect) {
         const { showId, seatNumber } = createBookDto;
 
-        const user = await this.userService.findUserById(userId);
-        if (!user) {
-            throw new NotFoundException("존재하지 않는 유저입니다.");
-        }
-
-        const show = await this.showService.findShowById(showId);
-        const showData = await this.showService.findShowDetail(showId);
-        if (!showData) {
-            throw new NotFoundException("존재하지 않는 공연입니다.");
-        }
-        if (!showData.isBookPossible) {
-            throw new UnprocessableEntityException("이미 예약이 다 찼습니다.");
-        }
-
-        const seat = await this.seatService.findSeatByCondition(
-            showId,
-            seatNumber,
-        );
-        if (!seat) {
-            throw new NotFoundException("존재하지 않는 좌석입니다.");
-        }
-
-        if (user.money < showData.price) {
-            throw new ForbiddenException("소지금이 부족합니다.");
-        }
-
         /// 트랜잭션
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
-        await queryRunner.startTransaction();
+        await queryRunner.startTransaction("REPEATABLE READ");
 
         try {
-            user.money = user.money - showData.price;
+            // 사용자 확인
+            const user = await queryRunner.manager.findOne(User, {
+                where: { id: userId },
+            });
+            if (!user) {
+                throw new NotFoundException("존재하지 않는 유저입니다.");
+            }
 
+            // 공연 확인
+            const show = await queryRunner.manager.findOne(Show, {
+                where: { id: showId },
+            });
+
+            // 좌석 확인
+            const seat = await queryRunner.manager.findOne(Seat, {
+                where: {
+                    seatNumber,
+                    show,
+                },
+                lock: {
+                    mode: "pessimistic_write",
+                },
+            });
+            if (!seat) {
+                throw new NotFoundException("존재하지 않는 좌석입니다.");
+            }
+
+            // 사용자 소지금 차감
+            if (user.money < show.price) {
+                throw new ForbiddenException("소지금이 부족합니다.");
+            }
+
+            user.money = user.money - show.price;
             await queryRunner.manager.save(user);
 
-            const isBook = await this.findBookByCondition(showId, seat.id);
+            // 예약이 있는지 확인
+            const isBook = await queryRunner.manager.findOne(Book, {
+                where: {
+                    seat,
+                    show,
+                },
+            });
             if (isBook) {
                 throw new ConflictException("이미 예약되어 있습니다.");
             }
 
+            // 예약 생성
             const book = this.bookRepository.create({
                 seat,
                 show,
                 user,
             });
-
             await queryRunner.manager.save(Book, book);
 
+            // 트랜잭션 커밋
             await queryRunner.commitTransaction();
 
             return {

@@ -56,7 +56,7 @@ export class Show {
     @OneToMany(() => Seat, (seat) => seat.show)
     seats: Relation<Seat>[];
 
-    @OneToMany(() => Book, (book) => book.show, { cascade: true })
+    @OneToMany(() => Book, (book) => book.show)
     books: Relation<Book>[];
 
     // @ManyToMany(() => User, (user) => (user.shows))
